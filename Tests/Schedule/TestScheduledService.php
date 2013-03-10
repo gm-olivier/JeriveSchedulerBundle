@@ -3,7 +3,6 @@
 namespace Jerive\Bundle\SchedulerBundle\Tests\Schedule;
 
 use Jerive\Bundle\SchedulerBundle\Schedule\ScheduledServiceInterface;
-use Jerive\Bundle\SchedulerBundle\Entity\Job;
 
 /**
  * Description of TestScheduledService
@@ -12,15 +11,7 @@ use Jerive\Bundle\SchedulerBundle\Entity\Job;
  */
 class TestScheduledService implements ScheduledServiceInterface
 {
-    /**
-     * @var Job
-     */
-    protected $job;
-
-    public function setJob(Job $job)
-    {
-        $this->job = $job;
-    }
+    use \Jerive\Bundle\SchedulerBundle\Schedule\ScheduledServiceTrait;
 
     public function log($str)
     {

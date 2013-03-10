@@ -72,12 +72,13 @@ class Scheduler implements ContainerAwareInterface
 
             $logger->log(sprintf('Executing service "%s" on job "%s" #%s', $job->getServiceId(), $job->getName(), $job->getId()), \Monolog\Logger::INFO);
             $job->execute($this->container->get($job->getServiceId()));
+
             $em->persist($job);
             $em->flush($job);
         }
     }
 
-    public function removeJobs()
+    public function cleanJobs()
     {
         $em = $this->container->get('doctrine')->getEntityManager();
         $repository = $em->getRepository('JeriveSchedulerBundle:Job');
