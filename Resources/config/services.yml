@@ -13,3 +13,6 @@ services:
         class: %jerive_scheduler.scheduler.class%
         calls:
             - [setContainer, ["@service_container"]]
+
+    jerive_scheduler.test_service:
+        class: Jerive\Bundle\SchedulerBundle\Tests\Schedule\TestScheduledService

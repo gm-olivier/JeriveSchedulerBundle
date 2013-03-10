@@ -8,7 +8,7 @@ use Jerive\Bundle\SchedulerBundle\Schedule\DelayedProxy;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="Jerive\Bundle\SchedulerBundle\Entity\Repository\TaskRepository")
  */
 class Task
 {
@@ -49,9 +49,31 @@ class Task
      */
     protected $executed = 0;
 
+    /**
+     * @var boolean
+     */
+    protected $locked = false;
+
     public function __construct()
     {
         $this->date = new \DateTime('now');
+    }
+
+    public function lock()
+    {
+        $this->locked = true;
+    }
+
+    public function unlock()
+    {
+        $this->locked = false;
+    }
+
+    public function checkUnlocked()
+    {
+        if ($this->locked) {
+            throw new \RuntimeException('Cannot set values on a locked task');
+        }
     }
 
     /**
@@ -72,6 +94,7 @@ class Task
      */
     public function setServiceId($service)
     {
+        $this->checkUnlocked();
         $this->serviceId = $service;
 
         return $this;
@@ -95,7 +118,8 @@ class Task
      */
     public function setProxy($proxy)
     {
-        $this->params = $proxy;
+        $this->checkUnlocked();
+        $this->proxy = $proxy;
 
         return $this;
     }
@@ -110,21 +134,35 @@ class Task
         return $this->proxy;
     }
 
+    public function program()
+    {
+        return $this->getProxy();
+    }
+
     /**
-     *
+     * @param ScheduledServiceInterface $service
      */
     public function execute(ScheduledServiceInterface $service)
     {
-        if ($this->repeatEvery) {
-            $this->setNextExecutionDate(
-                (new \DateTime('now'))->add(new \DateInterval($this->repeatEvery))
-            );
+        $isFuture = $this->getNextExecutionDate() > new \DateTime('now');
+        if (($this->executed && !$this->repeatEvery && $isFuture)
+                || $isFuture && $this->repeatEvery) {
+            return;
+        } else {
+            $this->checkUnlocked();
+            $service->setTask($this);
+            $this->lock();
+            $this->getProxy()->execute($service);
+            $this->unlock();
+            $this->executed++;
+            if ($this->repeatEvery) {
+                $this->setNextExecutionDate(
+                    clone $this->getNextExecutionDate()->add(new \DateInterval($this->repeatEvery))
+                );
+            }
+
+            $this->execute($service);
         }
-
-        $this->executed++;
-
-        $service->setTask($this);
-        $this->getProxy()->execute($service);
     }
 
     /**
@@ -182,6 +220,7 @@ class Task
      */
     public function setExecuted($executed)
     {
+        $this->checkUnlocked();
         $this->executed = $executed;
 
         return $this;

@@ -24,6 +24,12 @@ class Scheduler implements ContainerAwareInterface
         $this->container = $container;
     }
 
+    /**
+     *
+     * @param string $serviceId
+     * @return \Jerive\Bundle\SchedulerBundle\Entity\Task
+     * @throws \RuntimeException
+     */
     public function createTask($serviceId)
     {
         $task = new Task();
@@ -32,25 +38,34 @@ class Scheduler implements ContainerAwareInterface
         }
         $task->setServiceId($serviceId);
         $task->setProxy($this->container->get('jerive_scheduler.proxy'));
+        $task->setNextExecutionDate(new \DateTime('now'));
 
         return $task;
     }
 
-    public function schedule($task)
+    /**
+     * @param Task $task
+     */
+    public function schedule(Task $task)
     {
         $em = $this->container->get('doctrine')->getEntityManager();
         $em->persist($task);
         $em->flush($task);
     }
 
+    /**
+     * Execute remaining tasks
+     */
     public function executeTasks()
     {
         $em = $this->container->get('doctrine')->getEntityManager();
-        $repository = $em->getRepositoryForClass('\Jerive\Bundle\SchedulerBundle\Entity\Task');
+        $repository = $em->getRepository('JeriveSchedulerBundle:Task');
 
         foreach($repository->getPendingTasks() as $task) {
             $task->execute($this->container->get($task->getServiceId()));
             $em->persist($task);
         }
+
+        $em->flush();
     }
 }

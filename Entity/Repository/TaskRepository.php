@@ -1,5 +1,7 @@
 <?php
 
+namespace Jerive\Bundle\SchedulerBundle\Entity\Repository;
+
 use Doctrine\ORM\EntityRepository;
 
 /**
@@ -13,11 +15,12 @@ class TaskRepository extends EntityRepository
     {
         $qb = $this->createQueryBuilder('t');
         $qb
-            ->where('t.nextExecutionDate < :date')
+            ->where('t.nextExecutionDate <= :date')
             ->andWhere($qb->expr()->orX(
-                $qb->expr()->eq('executed', 0)
+                $qb->expr()->eq('t.executed', 0),
+                $qb->expr()->isNotNull('t.repeatEvery')
             ))
-            ->setParameter('date', new DateTime('now'))
+            ->setParameter('date', new \DateTime('now'))
         ;
 
         return $qb->getQuery()->getResult();
