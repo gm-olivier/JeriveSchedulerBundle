@@ -2,7 +2,7 @@
 
 namespace Jerive\Bundle\SchedulerBundle\Schedule;
 
-use Jerive\Bundle\SchedulerBundle\Entity\Task;
+use Jerive\Bundle\SchedulerBundle\Entity\Job;
 
 /**
  *
@@ -13,6 +13,6 @@ interface ScheduledServiceInterface
     /**
      * @return DelayedProxy
      */
-    public function setTask(Task $task);
+    public function setJob(Job $job);
 }
 

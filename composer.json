@@ -1,6 +1,6 @@
 {
     "name": "jerive/scheduler-bundle",
-    "description": "Provides utilities to program and execute tasks",
+    "description": "Provides utilities to schedule and execute jobs",
     "license": "MIT",
     "authors": [
         {

@@ -22,12 +22,12 @@ class ExecuteCommand extends ContainerAwareCommand
     {
         $this
             ->setName('jerive:scheduler:execute')
-            ->setHelp("Execute remaining tasks")
+            ->setHelp("Execute remaining jobs")
         ;
     }
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->getContainer()->get('jerive_scheduler.scheduler')->executeTasks();
+        $this->getContainer()->get('jerive_scheduler.scheduler')->executeJobs();
     }
 }

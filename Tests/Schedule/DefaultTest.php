@@ -12,14 +12,14 @@ class DefaultTest extends WebTestCase
         $container = $client->getContainer();
 
         $this->scheduler = $container->get('jerive_scheduler.scheduler');
-        $task = $this->scheduler->createTask('jerive_scheduler.test_service');
-        $task
+        $job = $this->scheduler->createJob('jerive_scheduler.test_service');
+        $job
             ->setRepeatEvery('PT1M')
             ->program()
             ->log('toto')
             ->log('coco')
         ;
 
-        $this->scheduler->schedule($task);
+        $this->scheduler->schedule($job);
     }
 }
