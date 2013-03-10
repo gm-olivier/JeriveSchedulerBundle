@@ -10,6 +10,9 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\HasLifecycleCallbacks
  * @ORM\Entity(repositoryClass="Jerive\Bundle\SchedulerBundle\Entity\Repository\JobRepository")
+ * @ORM\Table(indexes={
+ *      @ORM\Index(columns={"status", "nextExecutionDate"})
+ * })
  */
 class Job
 {
