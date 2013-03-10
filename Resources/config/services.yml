@@ -1,0 +1,15 @@
+parameters:
+    jerive_scheduler.proxy.class:     Jerive\Bundle\SchedulerBundle\Schedule\DelayedProxy
+    jerive_scheduler.scheduler.class: Jerive\Bundle\SchedulerBundle\Schedule\Scheduler
+
+services:
+    jerive_scheduler.proxy:
+        class: %jerive_scheduler.proxy.class%
+        scope: prototype
+        calls:
+            - [setDoctrine, ["@doctrine"]]
+
+    jerive_scheduler.scheduler:
+        class: %jerive_scheduler.scheduler.class%
+        calls:
+            - [setContainer, ["@service_container"]]

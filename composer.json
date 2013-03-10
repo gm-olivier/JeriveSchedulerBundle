@@ -1,0 +1,19 @@
+{
+    "name": "jerive/scheduler-bundle",
+    "description": "Provides utilities to program and execute tasks",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "jerive",
+            "email": "jerome.viveret@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+	"symfony/symfony": "*"
+    },
+    "autoload": {
+        "psr-0": { "Jerive\\Bundle\\SchedulerBundle": "" }
+    },
+    "target-dir": "Jerive/Bundle/SchedulerBundle"
+}
