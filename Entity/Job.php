@@ -4,6 +4,7 @@ namespace Jerive\Bundle\SchedulerBundle\Entity;
 
 use Jerive\Bundle\SchedulerBundle\Schedule\ScheduledServiceInterface;
 use Jerive\Bundle\SchedulerBundle\Schedule\DelayedProxy;
+use Jerive\Bundle\SchedulerBundle\Exception\FailedExecutionException;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -21,6 +22,8 @@ class Job
     const STATUS_PENDING    = 'pending';
 
     const STATUS_TERMINATED = 'terminated';
+
+    const STATUS_FAILED     = 'waiting';
 
     /**
      * @ORM\Id
@@ -85,14 +88,15 @@ class Job
     protected $status = self::STATUS_WAITING;
 
     /**
+     * @var FailedExecutionException
+     * @ORM\Column(type="object", nullable=true)
+     */
+    protected $lastException;
+
+    /**
      * @var boolean
      */
     protected $locked = false;
-
-    /**
-     * @var Logger
-     */
-    protected $logger;
 
     public function __construct()
     {
@@ -140,13 +144,6 @@ class Job
         return $this;
     }
 
-    public function setStatus($status)
-    {
-        $this->checkUnlocked();
-        $this->status = $status;
-        return $this;
-    }
-
     public function getStatus()
     {
         return $this->status;
@@ -160,6 +157,12 @@ class Job
     public function getServiceId()
     {
         return $this->serviceId;
+    }
+
+    public function prepareForExecution()
+    {
+        $this->status = self::STATUS_PENDING;
+        $this->lastExecutionDate = new \DateTime('now');
     }
 
     /**
@@ -186,6 +189,9 @@ class Job
         return $this->proxy;
     }
 
+    /**
+     * @return DelayedProxy
+     */
     public function program()
     {
         return $this->getProxy();
@@ -205,15 +211,21 @@ class Job
         if (($this->executionCount && !$this->repeatEvery && $isFuture)
                 || $isFuture && $this->repeatEvery) {
             if ($this->repeatEvery) {
-                $this->setStatus(self::STATUS_WAITING);
+                $this->status = self::STATUS_WAITING;
             }
         } else {
             $this->checkUnlocked();
             $this->lock();
 
-            $service->setJob($this);
-            $this->getProxy()->execute($service);
-            $this->lastExecutionDate = new \DateTime('now');
+            try {
+                $service->setJob($this);
+                $this->getProxy()->execute($service);
+            } catch (\Exception $e) {
+                $this->status = self::STATUS_FAILED;
+                $this->executionCount++;
+                $this->lastException = new FailedExecutionException($e->getMessage(), $e->getCode(), $e);
+                throw $e;
+            }
 
             $this->unlock();
             $this->executionCount++;
@@ -225,7 +237,7 @@ class Job
 
                 $this->execute($service);
             } else {
-                $this->setStatus(self::STATUS_TERMINATED);
+                $this->status = self::STATUS_TERMINATED;
                 $this->nextExecutionDate = null;
                 return;
             }
@@ -242,13 +254,25 @@ class Job
         return $this->nextExecutionDate;
     }
 
+    /**
+     *
+     * @param string $intervalSpec
+     * @return Job
+     */
     public function setScheduledIn($intervalSpec)
     {
+        $this->checkUnlocked();
         $this->nextExecutionDate = (new \DateTime('now'))->add(new \DateInterval($intervalSpec));
         $this->firstExecutionDate = $this->nextExecutionDate;
         return $this;
     }
 
+    /**
+     *
+     * @param \DateTime $date
+     * @return Job
+     * @throws \RuntimeException
+     */
     public function setScheduledAt(\DateTime $date)
     {
         $this->checkUnlocked();
@@ -291,6 +315,7 @@ class Job
     public function prePersist()
     {
         $this->insertionDate = new \DateTime('now');
+
         if (!$this->firstExecutionDate) {
             $this->firstExecutionDate = $this->insertionDate;
             $this->nextExecutionDate = $this->insertionDate;
@@ -329,17 +354,6 @@ class Job
     {
         $this->repeatEvery = null;
         return $this;
-    }
-
-    public function setLogger($logger)
-    {
-        $this->logger = $logger;
-        return $this;
-    }
-
-    public function getLogger()
-    {
-        return $this->logger;
     }
 
     public function setName($name)

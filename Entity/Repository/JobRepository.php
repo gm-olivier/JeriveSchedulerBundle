@@ -18,10 +18,6 @@ class JobRepository extends EntityRepository
         $qb
             ->where('t.nextExecutionDate <= :date')
             ->andWhere('t.status = :status')
-            ->andWhere($qb->expr()->orX(
-                $qb->expr()->eq('t.executionCount', 0),
-                $qb->expr()->isNotNull('t.repeatEvery')
-            ))
             ->setParameters(array(
                 'date'   => new \DateTime('now'),
                 'status' => Job::STATUS_WAITING,
@@ -48,10 +44,13 @@ class JobRepository extends EntityRepository
     {
         $qb = $this->createQueryBuilder('t');
         $qb
-            ->where('t.status = :status')
-            ->setParameters(array(
-                'status' => Job::STATUS_PENDING,
-            ))
+            ->where($qb->expr()->orX(
+                $qb->expr()->eq('t.status', Job::STATUS_FAILED),
+                $qb->expr()->andX(
+                    $qb->expr()->eq('t.status', Job::STATUS_PENDING),
+                    $qb->expr()->lte('t.lastExecutionDate', ':date')
+            )))
+            ->setParameter('date', new \DateTime('30 minutes'))
         ;
 
         return $qb->getQuery()->getResult();
