@@ -66,15 +66,15 @@ class Scheduler implements ContainerAwareInterface
             $em->persist($job);
             $em->flush($job);
 
-            $logger->log(sprintf('Begin execution of service [%s] in job [%s]#%s', $job->getServiceId(), $job->getName(), $job->getId()), \Monolog\Logger::INFO);
+            $logger->log(\Monolog\Logger::INFO, sprintf('Begin execution of service [%s] in job [%s]#%s', $job->getServiceId(), $job->getName(), $job->getId()));
 
             try {
                 $job->execute($this->container->get($job->getServiceId()));
             } catch (\Exception $e) {
-                $logger->log(sprintf('Failed execution of service [%s] in job [%s]#%s', $job->getServiceId(), $job->getName(), $job->getId()), \Monolog\Logger::ERROR);
+                $logger->log(\Monolog\Logger::ERROR, sprintf('Failed execution of service [%s] in job [%s]#%s', $job->getServiceId(), $job->getName(), $job->getId()));
             }
 
-            $logger->log(sprintf('End execution of service [%s] in job [%s]#%s', $job->getServiceId(), $job->getName(), $job->getId()), \Monolog\Logger::INFO);
+            $logger->log(\Monolog\Logger::INFO, sprintf('End execution of service [%s] in job [%s]#%s', $job->getServiceId(), $job->getName(), $job->getId()));
 
             $em->persist($job);
             $em->flush($job);

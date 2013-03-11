@@ -11,26 +11,32 @@ namespace Jerive\Bundle\SchedulerBundle\Exception;
  */
 class FailedExecutionException extends \Exception implements \Serializable
 {
-    protected $traceAsString;
+    protected $trace;
 
     public function serialize()
     {
+        $trace = array();
+        foreach($this->getTrace() as $line) {
+            unset($line['args']);
+            $trace[] = $line;
+        }
+
         return serialize(array(
             $this->code,
             $this->file,
             $this->line,
             $this->message,
-            $this->getTraceAsString(),
+            $trace,
         ));
     }
 
     public function unserialize($serialized)
     {
-        list($this->code, $this->file, $this->line, $this->message, $this->traceAsString) = unserialize($serialized);
+        list($this->code, $this->file, $this->line, $this->message, $this->trace) = unserialize($serialized);
     }
 
-    public function getTraceAsString()
+    public function getPreviousTrace()
     {
-        return $this->traceAsString;
+        return $this->trace;
     }
 }

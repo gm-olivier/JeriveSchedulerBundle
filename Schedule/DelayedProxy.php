@@ -19,7 +19,6 @@ class DelayedProxy implements \Serializable
     protected $actions = array();
 
     /**
-     *
      * @var Registry
      */
     protected $doctrine;

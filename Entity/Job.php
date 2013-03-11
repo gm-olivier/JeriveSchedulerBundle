@@ -23,7 +23,7 @@ class Job
 
     const STATUS_TERMINATED = 'terminated';
 
-    const STATUS_FAILED     = 'waiting';
+    const STATUS_FAILED     = 'failed';
 
     /**
      * @ORM\Id
