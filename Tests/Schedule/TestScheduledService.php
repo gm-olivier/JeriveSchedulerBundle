@@ -3,6 +3,7 @@
 namespace Jerive\Bundle\SchedulerBundle\Tests\Schedule;
 
 use Jerive\Bundle\SchedulerBundle\Schedule\ScheduledServiceInterface;
+use Jerive\Bundle\SchedulerBundle\Schedule\ScheduledServiceTrait;
 
 /**
  * Description of TestScheduledService
@@ -11,7 +12,7 @@ use Jerive\Bundle\SchedulerBundle\Schedule\ScheduledServiceInterface;
  */
 class TestScheduledService implements ScheduledServiceInterface
 {
-    use \Jerive\Bundle\SchedulerBundle\Schedule\ScheduledServiceTrait;
+    use ScheduledServiceTrait;
 
     public function log($str)
     {

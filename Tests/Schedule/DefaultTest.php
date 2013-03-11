@@ -16,8 +16,7 @@ class DefaultTest extends WebTestCase
         $job
             ->setRepeatEvery('PT1M')
             ->program()
-            ->log('toto')
-            ->log('coco')
+            ->getInfo()
         ;
 
         $this->scheduler->schedule($job);
