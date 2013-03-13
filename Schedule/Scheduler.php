@@ -69,6 +69,7 @@ class Scheduler implements ContainerAwareInterface
             $logger->log(\Monolog\Logger::INFO, sprintf('Begin execution of service [%s] in job [%s]#%s', $job->getServiceId(), $job->getName(), $job->getId()));
 
             try {
+                $job->getProxy()->setDoctrine($this->container->get('doctrine'));
                 $job->execute($this->container->get($job->getServiceId()));
             } catch (\Exception $e) {
                 $logger->log(\Monolog\Logger::ERROR, sprintf('Failed execution of service [%s] in job [%s]#%s', $job->getServiceId(), $job->getName(), $job->getId()));

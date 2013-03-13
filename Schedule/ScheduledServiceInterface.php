@@ -11,8 +11,9 @@ use Jerive\Bundle\SchedulerBundle\Entity\Job;
 interface ScheduledServiceInterface
 {
     /**
-     * @return DelayedProxy
+     *
+     * @param Job $job
      */
-    public function setJob(Job $job);
+    public function setScheduledJob(Job $job);
 }
 

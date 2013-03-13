@@ -16,7 +16,7 @@ trait ScheduledServiceTrait
      */
     protected $job;
 
-    public function setJob(Job $job)
+    public function setScheduledJob(Job $job)
     {
         $this->job = $job;
 
