@@ -16,6 +16,9 @@ class DelayedProxy implements \Serializable
 
     const PARAM_TYPE_ENTITY   = 1;
 
+    /**
+     * @var array
+     */
     protected $actions = array();
 
     /**
@@ -41,6 +44,12 @@ class DelayedProxy implements \Serializable
     public function unserialize($serialized)
     {
         $this->actions = unserialize($serialized);
+    }
+
+    public function reset()
+    {
+        $this->actions = array();
+        return $this;
     }
 
     /**

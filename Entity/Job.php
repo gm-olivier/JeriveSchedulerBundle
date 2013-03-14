@@ -273,7 +273,7 @@ class Job
      * @return Job
      * @throws \RuntimeException
      */
-    public function setScheduledAt(\DateTime $date)
+    public function setScheduledAt(\DateTime $date = null)
     {
         $this->checkUnlocked();
         if ($this->executionCount) {
