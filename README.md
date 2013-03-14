@@ -12,15 +12,23 @@ A job is the combination of:
     either scalars or Doctrine entities. Doctrine entities are serialized
     as a class/ID pair, so as to be found later.
 
-Features:
-  * "Remote programming"
-  * Logging
-  * Tagging
-  * Repetition
-  * Fault tolerant
+This system does not serialize any Object, which can be a problem for some
+complex cases, yet it is simple and lightweight and allows great flexibility.
+
+###Features###
+
+  * "Remote job programming"
+  * Job tagging
+  * Job execution logging
+  * Job repetition
+  * Fault tolerant at execution
+
+
+###Example###
 
 ``` php
 <?php
+
 $scheduler = $this->container->get('jerive_scheduler.scheduler');
 $myJob     = $scheduler->createJob('my_company.my_scheduled_service');
 $myJob
@@ -36,4 +44,20 @@ $myJob
 ;
 
 $scheduler->schedule($myJob);
+```
+
+Installation
+------------
+
+``` php
+<?php
+    // app/AppKernel.php
+    public function registerBundles()
+    {
+        return array(
+            // ...
+            new Jerive\Bundle\SchedulerBundle\JeriveSchedulerBundle(),
+            // ...
+        );
+    }
 ```
