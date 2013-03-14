@@ -5,9 +5,11 @@ namespace Jerive\Bundle\SchedulerBundle\Schedule;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Doctrine\ORM\EntityManager;
 
 use Monolog\Logger;
 use Jerive\Bundle\SchedulerBundle\Entity\Job;
+use Jerive\Bundle\SchedulerBundle\Entity\JobTag;
 use Jerive\Bundle\SchedulerBundle\Schedule\ScheduledServiceInterface;
 
 /**
@@ -67,11 +69,45 @@ class Scheduler implements ContainerAwareInterface
     }
 
     /**
+     * Process the tags added to the entity
+     *
+     * @param \Jerive\Bundle\SchedulerBundle\Entity\Job $job
+     */
+    protected function processTags(Job $job)
+    {
+        $names = array();
+        $collection = $job->getTags();
+
+        if ($collection->count()) {
+            foreach($job->getTags() as $key => $tag) {
+                if (!$tag->getId()) {
+                    unset($collection[$key]);
+                    $names[$tag->getName()] = $tag->getName();
+                }
+            }
+
+            $qb = $this->container->get('doctrine')->getEntityManager()->getRepository('JeriveSchedulerBundle:JobTag')->createQueryBuilder('t');
+            $qb->where($qb->expr()->in('t.name', array_values($names)));
+
+            foreach($qb->getQuery()->getResult() as $tag) {
+                unset($names[$tag->getName()]);
+                $collection->add($tag);
+            }
+
+            foreach($names as $name) {
+                $collection->add((new JobTag)->setName($name));
+            }
+        }
+    }
+
+    /**
      * @param Job $job
      */
     public function schedule(Job $job)
     {
         $em = $this->container->get('doctrine')->getEntityManager();
+        $this->processTags($job);
+
         $em->persist($job);
         $em->flush($job);
 
@@ -83,13 +119,10 @@ class Scheduler implements ContainerAwareInterface
      */
     public function executeJobs()
     {
-        $em = $this->container->get('doctrine')->getEntityManager();
-        $repository = $em->getRepository('JeriveSchedulerBundle:Job');
-
-        foreach($repository->getExecutableJobs() as $job) {
+        foreach($this->getJobRepository()->getExecutableJobs() as $job) {
             $job->prepareForExecution();
-            $em->persist($job);
-            $em->flush($job);
+            $this->getManager()->persist($job);
+            $this->getManager()->flush($job);
 
             try {
                 $job->getProxy()->setDoctrine($this->container->get('doctrine'));
@@ -100,21 +133,51 @@ class Scheduler implements ContainerAwareInterface
 
             $this->log(Logger::INFO, sprintf('SUCCESS [%s] in job [%s]#%s', $job->getServiceId(), $job->getName(), $job->getId()));
 
-            $em->persist($job);
-            $em->flush($job);
+            $this->getManager()->persist($job);
+            $this->getManager()->flush($job);
         }
     }
 
     public function cleanJobs()
     {
-        $em = $this->container->get('doctrine')->getEntityManager();
-        $repository = $em->getRepository('JeriveSchedulerBundle:Job');
-
-        foreach($repository->getRemovableJobs() as $job) {
-            $em->remove($job);
+        foreach($this->getJobRepository()->getRemovableJobs() as $job) {
+            $this->getManager()->remove($job);
             $this->log(Logger::INFO, sprintf('REMOVE job [%s]#%s', $job->getName(), $job->getId()));
         }
 
-        $em->flush();
+        $this->getManager()->flush();
+    }
+
+    public function findByTags($tags)
+    {
+        $names = array();
+        foreach($tags as $tag) {
+            $names[] = (string) $tag;
+        }
+
+        $qb = $this->getJobRepository()->createQueryBuilder('j');
+
+        return $qb
+            ->leftJoin('t.tags', 't')
+            ->where($qb->expr()->in('t.name', $names))
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+
+
+
+    /**
+     * @return \Jerive\Bundle\SchedulerBundle\Entity\Repository\JobRepository
+     */
+    protected function getJobRepository()
+    {
+        return $this->getManager()->getRepository('JeriveSchedulerBundle:Job');
+    }
+
+    protected function getManager()
+    {
+        return $this->container->get('doctrine')->getManager();
     }
 }

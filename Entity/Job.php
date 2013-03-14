@@ -7,6 +7,7 @@ use Jerive\Bundle\SchedulerBundle\Schedule\DelayedProxy;
 use Jerive\Bundle\SchedulerBundle\Exception\FailedExecutionException;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * @ORM\HasLifecycleCallbacks
@@ -70,6 +71,11 @@ class Job
     protected $lastExecutionDate;
 
     /**
+     * @ORM\ManyToMany(targetEntity="JobTag", cascade={"persist"})
+     */
+    protected $tags;
+
+    /**
      * A \DateInterval specification
      * http://www.php.net/manual/fr/dateinterval.construct.php
      *
@@ -100,7 +106,7 @@ class Job
 
     public function __construct()
     {
-        $this->date = new \DateTime('now');
+        $this->tags = new ArrayCollection();
     }
 
     public function lock()
@@ -128,6 +134,17 @@ class Job
     public function getId()
     {
         return $this->id;
+    }
+
+    public function setName($name)
+    {
+        $this->name = $name;
+        return $this;
+    }
+
+    public function getName()
+    {
+        return $this->name;
     }
 
     /**
@@ -232,7 +249,7 @@ class Job
 
             if ($this->repeatEvery) {
                 $this->nextExecutionDate =
-                    clone $this->getNextExecutionDate()->add(new \DateInterval($this->repeatEvery))
+                    clone $this->getNextExecutionDate()->add(\DateInterval::createFromDateString($this->repeatEvery))
                 ;
 
                 $this->execute($service);
@@ -293,7 +310,7 @@ class Job
      */
     public function setRepeatEvery($repeatEvery)
     {
-        new \DateInterval($repeatEvery);
+        \DateInterval::createFromDateString($repeatEvery);
         $this->repeatEvery = $repeatEvery;
 
         return $this;
@@ -350,20 +367,64 @@ class Job
         return $this->executionCount;
     }
 
+    /**
+     * End recurrence of the job
+     *
+     * @return Job
+     */
     public function stopRepetition()
     {
         $this->repeatEvery = null;
         return $this;
     }
 
-    public function setName($name)
+    /**
+     * @param <JobTag|ArrayCollection|array|string> $tag
+     */
+    public function addTag($tag)
     {
-        $this->name = $name;
+        if (is_string($tag)) {
+            $name = $tag;
+            $tag = new JobTag();
+            $tag->setName($name);
+        } elseif (is_array($tag) || $tag instanceof ArrayCollection) {
+            foreach($tag as $single) {
+                $this->addTag($single);
+            }
+            return $this;
+        }
+
+        if ($tag instanceof JobTag) {
+            foreach($this->tags as $defined) {
+                if ($defined->getName() == $tag->getName()) {
+                    return $this;
+                }
+            }
+        } else {
+            throw new \RuntimeException('$tag must be an array, a string, an ArrayCollection or an instance of JobTag');
+        }
+
+        $this->tags->add($tag);
+
         return $this;
     }
 
-    public function getName()
+    /**
+     * Shorthand method for addTag
+     *
+     * @param <JobTag|ArrayCollection|array|string> $tags
+     * @return Job
+     */
+    public function tag($tags)
     {
-        return $this->name;
+        return $this->addTag($tags);
+    }
+
+    /**
+     * @return ArrayCollection
+     */
+    public function getTags()
+    {
+        return $this->tags;
     }
 }
