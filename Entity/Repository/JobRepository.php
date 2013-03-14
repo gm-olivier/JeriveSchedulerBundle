@@ -18,6 +18,7 @@ class JobRepository extends EntityRepository
         $qb
             ->where('t.nextExecutionDate <= :date')
             ->andWhere('t.status = :status')
+            ->orderBy('t.nextExecutionDate')
             ->setParameters(array(
                 'date'   => new \DateTime('now'),
                 'status' => Job::STATUS_WAITING,
