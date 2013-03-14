@@ -4,8 +4,8 @@ namespace Jerive\Bundle\SchedulerBundle\Entity;
 
 use Jerive\Bundle\SchedulerBundle\Schedule\ScheduledServiceInterface;
 use Jerive\Bundle\SchedulerBundle\Schedule\DelayedProxy;
-use Jerive\Bundle\SchedulerBundle\Exception\FailedExecutionException;
 
+use Symfony\Component\HttpKernel\Exception\FlattenException;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 
@@ -20,7 +20,7 @@ class Job
 {
     const STATUS_WAITING    = 'waiting';
 
-    const STATUS_PENDING    = 'pending';
+    const STATUS_RUNNING    = 'running';
 
     const STATUS_TERMINATED = 'terminated';
 
@@ -94,7 +94,7 @@ class Job
     protected $status = self::STATUS_WAITING;
 
     /**
-     * @var FailedExecutionException
+     * @var FlattenException
      * @ORM\Column(type="object", nullable=true)
      */
     protected $lastException;
@@ -178,7 +178,7 @@ class Job
 
     public function prepareForExecution()
     {
-        $this->status = self::STATUS_PENDING;
+        $this->status = self::STATUS_RUNNING;
         $this->lastExecutionDate = new \DateTime('now');
     }
 
@@ -219,7 +219,7 @@ class Job
      */
     public function execute(ScheduledServiceInterface $service)
     {
-        if (!$this->status == self::STATUS_PENDING) {
+        if (!$this->status == self::STATUS_RUNNING) {
             throw new \RuntimeException('Cannot execute a job in status other than pending');
         }
 
@@ -240,7 +240,7 @@ class Job
             } catch (\Exception $e) {
                 $this->status = self::STATUS_FAILED;
                 $this->executionCount++;
-                $this->lastException = new FailedExecutionException($e->getMessage(), $e->getCode(), $e);
+                $this->lastException = FlattenException::create($e);
                 throw $e;
             }
 

@@ -48,7 +48,7 @@ class JobRepository extends EntityRepository
             ->where($qb->expr()->orX(
                 $qb->expr()->eq('t.status', Job::STATUS_FAILED),
                 $qb->expr()->andX(
-                    $qb->expr()->eq('t.status', Job::STATUS_PENDING),
+                    $qb->expr()->eq('t.status', Job::STATUS_RUNNING),
                     $qb->expr()->lte('t.lastExecutionDate', ':date')
             )))
             ->setParameter('date', new \DateTime('30 minutes'))
