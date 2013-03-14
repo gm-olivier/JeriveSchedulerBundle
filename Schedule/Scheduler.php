@@ -148,7 +148,13 @@ class Scheduler implements ContainerAwareInterface
         $this->getManager()->flush();
     }
 
-    public function findByTags($tags)
+    /**
+     *
+     * @param array $tags
+     * @param array $criteria
+     * @return array
+     */
+    public function findByTags($tags, $criteria = array())
     {
         $names = array();
         foreach($tags as $tag) {
@@ -157,9 +163,18 @@ class Scheduler implements ContainerAwareInterface
 
         $qb = $this->getJobRepository()->createQueryBuilder('j');
 
+        if (!empty($names)) {
+            $qb
+                ->leftJoin('j.tags', 't')
+                ->where($qb->expr()->in('t.name', $names))
+            ;
+        }
+
+        foreach($criteria as $key => $value) {
+            $qb->andWhere('j.' . $key . ' = :' . $key)->setParameter($key, $value);
+        }
+
         return $qb
-            ->leftJoin('t.tags', 't')
-            ->where($qb->expr()->in('t.name', $names))
             ->getQuery()
             ->getResult()
         ;
