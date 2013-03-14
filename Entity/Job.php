@@ -350,7 +350,7 @@ class Job
         return $this->executionCount;
     }
 
-    public function endRepetition()
+    public function stopRepetition()
     {
         $this->repeatEvery = null;
         return $this;
