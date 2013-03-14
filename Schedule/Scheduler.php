@@ -112,6 +112,7 @@ class Scheduler implements ContainerAwareInterface
 
         foreach($repository->getRemovableJobs() as $job) {
             $em->remove($job);
+            $this->log(Logger::INFO, sprintf('REMOVE job [%s]#%s', $job->getName(), $job->getId()));
         }
 
         $em->flush();
