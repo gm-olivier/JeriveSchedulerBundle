@@ -249,7 +249,7 @@ class Job
 
             if ($this->repeatEvery) {
                 $this->nextExecutionDate =
-                    clone $this->getNextExecutionDate()->add(\DateInterval::createFromDateString($this->repeatEvery))
+                    clone $this->getNextExecutionDate()->add($this->translateIntervalSpec($this->repeatEvery))
                 ;
 
                 $this->execute($service);
@@ -272,14 +272,13 @@ class Job
     }
 
     /**
-     *
-     * @param string $intervalSpec
+     * @param string $intervalSpec Period (strtotime or ISO-8601)
      * @return Job
      */
-    public function setScheduledIn($intervalSpec)
+    public function setScheduledIn($spec)
     {
         $this->checkUnlocked();
-        $this->nextExecutionDate = (new \DateTime('now'))->add(new \DateInterval($intervalSpec));
+        $this->nextExecutionDate = (new \DateTime('now'))->add($this->translateIntervalSpec($spec));
         $this->firstExecutionDate = $this->nextExecutionDate;
         return $this;
     }
@@ -305,12 +304,12 @@ class Job
     /**
      * Set repeatEvery
      *
-     * @param string $repeatEvery
+     * @param string $repeatEvery Period (strtotime or ISO-8601)
      * @return Job
      */
     public function setRepeatEvery($repeatEvery)
     {
-        \DateInterval::createFromDateString($repeatEvery);
+        $this->translateIntervalSpec($repeatEvery);
         $this->repeatEvery = $repeatEvery;
 
         return $this;
@@ -426,5 +425,21 @@ class Job
     public function getTags()
     {
         return $this->tags;
+    }
+
+    /**
+     * Translate interval specification to a \DateInterval
+     * (either strtotime or ISO-8601)
+     *
+     * @param string $spec
+     * @return \DateInterval
+     */
+    protected function translateIntervalSpec($spec)
+    {
+        if (strpos($spec, 'P') === 0) {
+            return new \DateInterval($spec);
+        } else {
+            return \DateInterval::createFromDateString($spec);
+        }
     }
 }

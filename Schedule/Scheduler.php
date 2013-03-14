@@ -180,9 +180,6 @@ class Scheduler implements ContainerAwareInterface
         ;
     }
 
-
-
-
     /**
      * @return \Jerive\Bundle\SchedulerBundle\Entity\Repository\JobRepository
      */

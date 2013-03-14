@@ -13,10 +13,10 @@ A job is the combination of:
     as a class/ID pair, so as to be found later.
 
 Features:
-  * Remote programming
+  * "Remote programming"
   * Logging
-  * Repetition management
-  * Tagging management
+  * Tagging
+  * Repetition
   * Fault tolerant
 
 ``` php
@@ -24,8 +24,10 @@ Features:
 $scheduler = $this->container->get('jerive_scheduler.scheduler');
 $myJob     = $scheduler->createJob('my_company.my_scheduled_service');
 $myJob
+    ->setName('My first Job')
+    ->setRepeatEvery('+7 days')
     ->setScheduledIn('+2 days')  // ->setScheduledAt((new \DateTime('now'))->modify('+2 days'))
-    ->tag('my.first.job')
+    ->tag(array('my.first.job', 'user.reminder'))
     ->program()
         // Any method call and parameters will be recorded
         ->myMethod1(true)
