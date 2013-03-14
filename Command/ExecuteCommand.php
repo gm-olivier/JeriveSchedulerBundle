@@ -28,6 +28,9 @@ class ExecuteCommand extends ContainerAwareCommand
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->getContainer()->get('jerive_scheduler.scheduler')->executeJobs();
+        $this->getContainer()->get('jerive_scheduler.scheduler')
+                ->setOutputInterface($output)
+                ->executeJobs()
+        ;
     }
 }
