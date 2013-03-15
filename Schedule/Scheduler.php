@@ -99,6 +99,7 @@ class Scheduler implements ContainerAwareInterface
 
     /**
      * @param Job $job
+     * @return Scheduler
      */
     public function schedule(Job $job)
     {
@@ -108,11 +109,11 @@ class Scheduler implements ContainerAwareInterface
         $em->persist($job);
         $em->flush($job);
 
-        return $job;
+        return $this;
     }
 
     /**
-     * Execute remaining jobs
+     * @return Scheduler
      */
     public function executeJobs()
     {
@@ -132,8 +133,13 @@ class Scheduler implements ContainerAwareInterface
             $this->getManager()->persist($job);
             $this->getManager()->flush($job);
         }
+
+        return $this;
     }
 
+    /**
+     * @return Scheduler
+     */
     public function cleanJobs()
     {
         foreach($this->getJobRepository()->getRemovableJobs() as $job) {
@@ -142,6 +148,7 @@ class Scheduler implements ContainerAwareInterface
         }
 
         $this->getManager()->flush();
+        return $this;
     }
 
     /**
