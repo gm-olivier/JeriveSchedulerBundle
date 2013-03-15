@@ -236,7 +236,7 @@ class Job
 
             try {
                 $service->setScheduledJob($this);
-                $this->getProxy()->execute($service);
+                $this->getProxy()->setService($service)->execute($service);
             } catch (\Exception $e) {
                 $this->status = self::STATUS_FAILED;
                 $this->executionCount++;

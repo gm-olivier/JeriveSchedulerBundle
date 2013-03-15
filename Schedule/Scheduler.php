@@ -5,7 +5,6 @@ namespace Jerive\Bundle\SchedulerBundle\Schedule;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Doctrine\ORM\EntityManager;
 
 use Monolog\Logger;
 use Jerive\Bundle\SchedulerBundle\Entity\Job;
@@ -57,14 +56,12 @@ class Scheduler implements ContainerAwareInterface
      */
     public function createJob($serviceId, $name = null)
     {
-        if (!$this->container->get($serviceId) instanceof ScheduledServiceInterface) {
-            throw new \RuntimeException(sprintf('Service "%s" must implement ScheduledServiceInterface', $serviceId));
-        }
+        $service = $this->container->get($serviceId);
 
         return (new Job())
             ->setServiceId($serviceId)
             ->setName($name)
-            ->setProxy($this->container->get('jerive_scheduler.proxy'))
+            ->setProxy($this->container->get('jerive_scheduler.proxy')->setService($service))
         ;
     }
 

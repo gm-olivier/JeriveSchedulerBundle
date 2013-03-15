@@ -27,6 +27,11 @@ class DelayedProxy implements \Serializable
     protected $doctrine;
 
     /**
+     * @var object
+     */
+    protected $service;
+
+    /**
      * @param Registry $doctrine
      * @return DelayedProxy
      */
@@ -53,9 +58,18 @@ class DelayedProxy implements \Serializable
     }
 
     /**
+     * @return DelayedProxy
+     */
+    public function setService(ScheduledServiceInterface $service)
+    {
+        $this->service = $service;
+        return $this;
+    }
+
+    /**
      * @param ScheduledServiceInterface $service
      */
-    public function execute(ScheduledServiceInterface $service)
+    public function execute()
     {
         foreach($this->actions as $action) {
             list($function, $params) = $action;
@@ -69,7 +83,7 @@ class DelayedProxy implements \Serializable
                 }
             }
 
-            call_user_func_array(array($service, $function), $params);
+            call_user_func_array(array($this->service, $function), $params);
         }
     }
 
@@ -82,6 +96,10 @@ class DelayedProxy implements \Serializable
      */
     public function __call($function, $params)
     {
+        if (!method_exists($this->service, $function) && !method_exists($this->service, '__call')) {
+            throw new \RuntimeException(sprintf('Service %s does not support method "%s"',  get_class($this->service), $function));
+        }
+
         foreach($params as &$param) {
             if (is_resource($param)) {
                 throw new \RuntimeException('Can not store resources');
