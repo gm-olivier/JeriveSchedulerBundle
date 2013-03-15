@@ -16,3 +16,12 @@ services:
 
     jerive_scheduler.test_service:
         class: Jerive\Bundle\SchedulerBundle\Tests\Schedule\TestScheduledService
+
+    jerive_scheduler.sonata_admin:
+        class: Jerive\Bundle\SchedulerBundle\Admin\JobAdmin
+        tags:
+            - { name: sonata.admin, manager_type: orm, group: scheduling, label: "Jobs" }
+        arguments:
+            - ~
+            - Jerive\Bundle\SchedulerBundle\Entity\Job
+            - SonataAdminBundle:CRUD
