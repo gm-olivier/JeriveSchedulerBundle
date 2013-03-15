@@ -12,6 +12,14 @@ A job is the combination of:
     either scalars or Doctrine entities. Doctrine entities are serialized
     as a class/ID pair, so as to be found later.
 
+It is useful in the following cases:
+  * you have a lot of different logics to execute remotely
+  * the treatment of these jobs is not heavy
+
+This bundle is meant to manage lightweight jobs.
+If you want full control on the processes, great fault tolerance, use
+https://github.com/schmittjoh/JMSJobQueueBundle/
+
 This system does not serialize any Object, which can be a problem for some
 complex cases, yet it is simple and lightweight and allows great flexibility.
 
@@ -21,8 +29,6 @@ complex cases, yet it is simple and lightweight and allows great flexibility.
   * Job tagging
   * Job execution logging
   * Job repetition
-  * Fault tolerant at execution
-
 
 ###Example###
 
