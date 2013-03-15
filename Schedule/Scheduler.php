@@ -127,11 +127,10 @@ class Scheduler implements ContainerAwareInterface
             try {
                 $job->getProxy()->setDoctrine($this->container->get('doctrine'));
                 $job->execute($this->container->get($job->getServiceId()));
+                $this->log(Logger::INFO, sprintf('SUCCESS [%s] in job [%s]#%s', $job->getServiceId(), $job->getName(), $job->getId()));
             } catch (\Exception $e) {
                 $this->log(Logger::ERROR, sprintf('FAILURE [%s] in job [%s]#%s', $job->getServiceId(), $job->getName(), $job->getId()));
             }
-
-            $this->log(Logger::INFO, sprintf('SUCCESS [%s] in job [%s]#%s', $job->getServiceId(), $job->getName(), $job->getId()));
 
             $this->getManager()->persist($job);
             $this->getManager()->flush($job);
