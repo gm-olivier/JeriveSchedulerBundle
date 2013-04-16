@@ -103,11 +103,10 @@ class Scheduler implements ContainerAwareInterface
      */
     public function schedule(Job $job)
     {
-        $em = $this->container->get('doctrine')->getEntityManager();
         $this->processTags($job);
 
-        $em->persist($job);
-        $em->flush($job);
+        $this->getManager()->persist($job);
+        $this->getManager()->flush($job);
 
         return $this;
     }
