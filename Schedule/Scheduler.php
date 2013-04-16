@@ -83,7 +83,7 @@ class Scheduler implements ContainerAwareInterface
                 }
             }
 
-            $qb = $this->container->get('doctrine')->getEntityManager()->getRepository('JeriveSchedulerBundle:JobTag')->createQueryBuilder('t');
+            $qb = $this->container->get('doctrine')->getManager()->getRepository('JeriveSchedulerBundle:JobTag')->createQueryBuilder('t');
             $qb->where($qb->expr()->in('t.name', array_values($names)));
 
             foreach($qb->getQuery()->getResult() as $tag) {
