@@ -12,9 +12,11 @@ use Jerive\Bundle\SchedulerBundle\Schedule\ScheduledServiceInterface;
  */
 class DelayedProxy implements \Serializable
 {
-    const PARAM_TYPE_STANDARD = 0;
+    const PARAM_TYPE_STANDARD   = 0;
 
-    const PARAM_TYPE_ENTITY   = 1;
+    const PARAM_TYPE_ENTITY     = 1;
+
+    const PARAM_TYPE_SERIALIZED = 2;
 
     /**
      * @var array
@@ -78,8 +80,10 @@ class DelayedProxy implements \Serializable
                 if ($type == self::PARAM_TYPE_ENTITY) {
                     list($id, $class) = $realparam;
                     $param = $this->doctrine->getManager()->find($class, $id);
-                } else {
+                } elseif ($type == self::PARAM_TYPE_STANDARD) {
                     $param = $realparam;
+                } else {
+                    $param = unserialize($realparam);
                 }
             }
 
@@ -114,7 +118,7 @@ class DelayedProxy implements \Serializable
                         $class
                     ));
                 } else {
-                    throw new \RuntimeException('Can only store entities managed by doctrine');
+                    $param = array(self::PARAM_TYPE_SERIALIZED, serialize($param));
                 }
             } else {
                 $param = array(self::PARAM_TYPE_STANDARD, $param);
