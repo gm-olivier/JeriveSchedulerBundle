@@ -420,6 +420,15 @@ class Job
     }
 
     /**
+     * @param object $entity
+     * @return Job
+     */
+    public function addEntityTag($entity)
+    {
+        return $this->tag($this->getProxy()->getTagForEntity($entity));
+    }
+
+    /**
      * @return ArrayCollection
      */
     public function getTags()

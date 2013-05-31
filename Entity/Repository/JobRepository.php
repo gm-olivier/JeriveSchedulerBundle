@@ -56,4 +56,21 @@ class JobRepository extends EntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    /**
+     * @param array$tags
+     * @return \Doctrine\DBAL\Query\QueryBuilder
+     */
+    public function getQueryBuilderForTags($tags)
+    {
+        $qb = $this->createQueryBuilder('j');
+
+        return $qb
+            ->select('j,t')
+            ->join('j.tags', 't')
+            ->where($qb->expr()->in('t.name', $tags))
+            ->groupBy('j')
+            ->having('count(t) = ' . count(array_unique($tags)))
+        ;
+    }
 }

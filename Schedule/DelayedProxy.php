@@ -16,8 +16,6 @@ class DelayedProxy implements \Serializable
 
     const PARAM_TYPE_ENTITY     = 1;
 
-    const PARAM_TYPE_SERIALIZED = 2;
-
     /**
      * @var array
      */
@@ -80,10 +78,8 @@ class DelayedProxy implements \Serializable
                 if ($type == self::PARAM_TYPE_ENTITY) {
                     list($id, $class) = $realparam;
                     $param = $this->doctrine->getManager()->find($class, $id);
-                } elseif ($type == self::PARAM_TYPE_STANDARD) {
-                    $param = $realparam;
                 } else {
-                    $param = unserialize($realparam);
+                    $param = $realparam;
                 }
             }
 
@@ -109,17 +105,13 @@ class DelayedProxy implements \Serializable
                 throw new \RuntimeException('Can not store resources');
             }
 
-            if (is_object($param)) {
-                if ($this->doctrine->getManager()->contains($param)) {
-                    $class    = get_class($param);
-                    $metadata = $this->doctrine->getManager()->getClassMetadata($class);
-                    $param    = array(self::PARAM_TYPE_ENTITY, array(
-                        $metadata->getIdentifierValues($param),
-                        $class
-                    ));
-                } else {
-                    $param = array(self::PARAM_TYPE_SERIALIZED, serialize($param));
-                }
+            if (is_object($param) && $this->getEntityManager()->contains($param)) {
+                $class    = get_class($param);
+                $metadata = $this->getEntityManager()->getClassMetadata($class);
+                $param    = array(self::PARAM_TYPE_ENTITY, array(
+                    $metadata->getIdentifierValues($param),
+                    $class
+                ));
             } else {
                 $param = array(self::PARAM_TYPE_STANDARD, $param);
             }
@@ -128,5 +120,27 @@ class DelayedProxy implements \Serializable
         $this->actions[] = array($function, $params);
 
         return $this;
+    }
+
+    /**
+     * @return \Doctrine\ORM\EntityManager
+     */
+    public function getEntityManager()
+    {
+        return $this->doctrine->getManager();
+    }
+
+    /**
+     * @param object $entity
+     * @return string
+     */
+    public function getTagForEntity($entity)
+    {
+        $manager    = $this->getEntityManager();
+        $entity     = $manager->merge($entity);
+        $metadata   = $manager->getClassMetadata(get_class($entity));
+        $reflection = $metadata->getReflectionClass();
+
+        return $reflection->getName() . '_' . implode('_', $metadata->getIdentifierValues($entity));
     }
 }

@@ -151,26 +151,13 @@ class Scheduler implements ContainerAwareInterface
     }
 
     /**
-     *
      * @param array $tags
      * @param array $criteria
      * @return array
      */
     public function findByTags($tags, $criteria = array())
     {
-        $names = array();
-        foreach($tags as $tag) {
-            $names[] = (string) $tag;
-        }
-
-        $qb = $this->getJobRepository()->createQueryBuilder('j');
-
-        if (!empty($names)) {
-            $qb
-                ->leftJoin('j.tags', 't')
-                ->where($qb->expr()->in('t.name', $names))
-            ;
-        }
+        $qb = $this->getJobRepository()->getQueryBuilderForTags($tags);
 
         foreach($criteria as $key => $value) {
             $qb->andWhere('j.' . $key . ' = :' . $key)->setParameter($key, $value);
@@ -183,6 +170,23 @@ class Scheduler implements ContainerAwareInterface
     }
 
     /**
+     *
+     * @param object $entity
+     * @param array $tags
+     * @param array $criteria
+     * @return Array
+     */
+    public function findByEntityTag($entity, $tags = array(), $criteria = array())
+    {
+        if (!is_array($tags)) {
+            $tags = array($tags);
+        }
+
+        $tags[] = $this->container->get('jerive_scheduler.proxy')->getTagForEntity($entity);
+        return $this->findByTags($tags, $criteria);
+    }
+
+    /**
      * @return \Jerive\Bundle\SchedulerBundle\Entity\Repository\JobRepository
      */
     protected function getJobRepository()
@@ -190,6 +194,9 @@ class Scheduler implements ContainerAwareInterface
         return $this->getManager()->getRepository('JeriveSchedulerBundle:Job');
     }
 
+    /**
+     * @return \Doctrine\ORM\EntityManager
+     */
     protected function getManager()
     {
         return $this->container->get('doctrine')->getManager();
