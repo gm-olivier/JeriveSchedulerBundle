@@ -57,8 +57,9 @@ class Scheduler implements ContainerAwareInterface
     public function createJob($serviceId, $name = null)
     {
         $service = $this->container->get($serviceId);
+        $job = new Job();
 
-        return (new Job())
+        return $job
             ->setServiceId($serviceId)
             ->setName($name)
             ->setProxy($this->container->get('jerive_scheduler.proxy')->setService($service))
@@ -92,7 +93,8 @@ class Scheduler implements ContainerAwareInterface
             }
 
             foreach($names as $name) {
-                $collection->add((new JobTag)->setName($name));
+                $job = new JobTag();
+                $collection->add($job->setName($name));
             }
         }
     }

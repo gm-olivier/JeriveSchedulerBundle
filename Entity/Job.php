@@ -278,7 +278,8 @@ class Job
     public function setScheduledIn($spec)
     {
         $this->checkUnlocked();
-        $this->nextExecutionDate = (new \DateTime('now'))->add($this->translateIntervalSpec($spec));
+        $date = new \DateTime('now');
+        $this->nextExecutionDate = $date->add($this->translateIntervalSpec($spec));
         $this->firstExecutionDate = $this->nextExecutionDate;
         return $this;
     }
