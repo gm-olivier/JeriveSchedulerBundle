@@ -55,6 +55,14 @@ $scheduler->schedule($myJob);
 Installation
 ------------
 
+Install using Composer (use a tagged version instead of `dev-master` if one is available):
+
+```
+composer require jerive/scheduler-bundle dev-master
+```
+
+Add the bundle to `AppKernel.php`:
+
 ``` php
 <?php
     // app/AppKernel.php
@@ -66,4 +74,16 @@ Installation
             // ...
         );
     }
+```
+
+Update your Doctrine schema (you will need to use `--dump-sql` or `--force`, whichever you are comfortable with):
+
+```
+app/console doctrine:schema:update
+```
+
+Then run the `jerive:scheduler:execute` console command regularly, for example using `cron`. Make sure to use the `--quiet` option if you don’t want `cron` to send an e-mail every time a job is executed:
+
+```
+*/5 * * * * /path/to/my/project/app/console jerive:scheduler:execute --quiet
 ```
